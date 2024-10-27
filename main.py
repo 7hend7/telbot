@@ -9,21 +9,31 @@ URL = "https://api.coingecko.com/api/v3/simple/price?ids="
 URL_PARAMS = "&vs_currencies="
 TOKEN = "7804944199:AAGt6x6IB9SfMtr0Q2Zjm8nGTD9rzCW8Seg"
 # folder's name
-LOGO_FOLDER  = "coins_logo"
+LOGO_FOLDER = "coins_logo"
 LOGO_PATH = pathlib.Path(__file__).resolve().parent / LOGO_FOLDER
 
-COINS = ("bitcoin", "ethereum", "dogecoin", "tether")
+COINS = (
+    "bitcoin",
+    "ethereum",
+    "dogecoin",
+    "tether",
+)
+COINS_SHORT = (
+    "btc",
+    "eth",
+    "doge",
+    "usdt",
+)
 
 bot = telebot.TeleBot(TOKEN)
 
 
 # get coins rate throught API
-def get_coin_course(
-    coins: tuple = COINS, curr: str = "usd"
-) -> dict:
+def get_coin_course(coins: tuple = COINS, curr: str = "usd") -> dict:
 
     responce = requests.get(URL + ",".join(coins) + URL_PARAMS + curr)
     data = responce.json()
+    # data structure is: {'bitcoin': {'usd': 67679}, 'dogecoin': {'usd': 0.140661}, 'ethereum': {'usd': 2488.48}, 'tether': {'usd': 0.998528}}
     return data
 
 
@@ -77,13 +87,23 @@ def start(message):
     send_coin_course(data, message.chat.id)
     bot.send_message(message.chat.id, "Enter your USD assets:")
 
-# TODO!
+
 @bot.message_handler(regexp=r"(\w+)\s(\d+)")
 def calc_purchase_coin(message):
-    mess = re.search(r"(?P<coin>\w+)\s(?P<money>\d+)", message.text)
 
-
-    bot.send_message(message.chat.id, mess.groupdict()['coin'] + mess.groupdict()['money'])
+    match = re.search(r"(?P<coin>\w+)\s(?P<assets>\d+)", message.text)
+    coin, assets = match.groupdict().values()
+    coin = coin.lower()
+    assets = float(assets.replace(",", "."))
+    # coin name checking
+    coin = COINS[COINS_SHORT.index(coin)] if coin in COINS_SHORT else None
+    if coin in COINS:
+        data = get_coin_course((coin,))
+        send_coin_course(data=data, chat_id=message.chat.id)
+        assets_msg = create_assets_msg(data=data, assets=assets)
+        bot.send_message(message.chat.id, assets_msg)
+    else:
+        bot.send_message(message.chat.id, "Here is no that coin to track for now")
 
 
 @bot.message_handler(regexp=r"^\d+\.?\,?\d?\d?")  # content_types=["text"]
@@ -91,6 +111,7 @@ def calc_purchase_coins(message):
 
     assets = message.text
     data = get_coin_course()
+    print(data)
     try:
         assets = float(assets.replace(",", "."))
         assets_msg = create_assets_msg(data=data, assets=assets)
