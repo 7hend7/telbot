@@ -7,7 +7,7 @@ import pathlib
 
 URL = "https://api.coingecko.com/api/v3/simple/price?ids="
 URL_PARAMS = "&vs_currencies="
-TOKEN = "7804944199:AAGt6x6IB9SfMtr0Q2Zjm8nG**********"
+TOKEN = "8198505029:AAHirrlIrfANoa3Fr_CSCrCRGhQeSnreyxs"
 # folder's name
 LOGO_FOLDER = "coins_logo"
 LOGO_PATH = pathlib.Path(__file__).resolve().parent / LOGO_FOLDER
@@ -62,10 +62,8 @@ def send_coin_course(data: dict, chat_id: int):
                 yield coin + ": " + str(value) + " " + curr.upper()
 
     # send image with coin rate caption
-    coin_courses = gen_coin_course()
-    for course in coin_courses:
-        logo_paths = gen_logo_paths()
-        for lpath in logo_paths:
+    for course in gen_coin_course():
+        for lpath in gen_logo_paths():
             # split string to get coin name
             # if coin name is the part of the file name try to send
             if course.split(":")[0] in lpath:
