@@ -104,7 +104,7 @@ def calc_purchase_coin(message):
         bot.send_message(message.chat.id, "Here is no that coin to track for now")
 
 
-@bot.message_handler(regexp=r"^\d+\.?\,?\d?\d?")  # content_types=["text"]
+@bot.message_handler(regexp=r"^\d+[.,]?\d?\d?")  # content_types=["text"]
 def calc_purchase_coins(message):
 
     assets = message.text
